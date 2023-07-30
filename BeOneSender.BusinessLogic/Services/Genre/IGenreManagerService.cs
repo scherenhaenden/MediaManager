@@ -1,7 +1,12 @@
-namespace BeOneSender.BusinessLogic.Services.SongLibraryManagement;
+using BeOneSender.BusinessLogic.Models;
+
+namespace BeOneSender.BusinessLogic.Services.Genre;
 
 public interface IGenreManagerService
 {
-    Task<bool> AddGenre(string title, string artist, string genre, string filePath, CancellationToken cancellationToken = default);
+    Task<GenreBusinessLogicModel> AddGenre(string genre, string? description,
+        CancellationToken cancellationToken = default);
 
+    Task<List<GenreBusinessLogicModel>> GetAllGenres(
+        CancellationToken cancellationToken = default);
 }

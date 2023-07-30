@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+        <ProjectReference Include="..\BeOneSender.BusinessLogic\BeOneSender.BusinessLogic.csproj"/>
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.9"/>
+        <PackageReference Include="SQLite" Version="3.13.0"/>
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.5"/>
+        <PackageReference Include="SQLitePCLRaw.core" Version="2.1.5"/>
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.5"/>
+    </ItemGroup>
+
+</Project>

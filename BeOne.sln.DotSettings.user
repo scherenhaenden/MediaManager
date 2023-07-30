@@ -1,0 +1,15 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">/Users/edwardflores/Library/Caches/JetBrains/Rider2023.2/resharper-host/temp/Rider/vAny/CoverageData/_BeOne.-696064497/Snapshot/snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d3b9f896_002Db3a2_002D47a7_002D82bc_002D17eeef6e2578/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from ArtistTests.cs" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Or&gt;
+    &lt;Project Location="/Users/edwardflores/Projects/Development/BeOne/BeOneSender.Data.Tests" Presentation="&amp;lt;Data&amp;gt;\&amp;lt;BeOneSender.Data.Tests&amp;gt;" /&gt;
+    &lt;ProjectFile&gt;DBBAF7FF-255B-4D74-8D54-D0F05D0BE7B4/d:Services/d:Genre/f:GenreManagerServiceTests.cs&lt;/ProjectFile&gt;
+    &lt;TestAncestor&gt;
+      &lt;TestId&gt;NUnit3x::DBBAF7FF-255B-4D74-8D54-D0F05D0BE7B4::net7.0::BeOneSender.BusinessLogic.Tests.Services.Bootstrap.LoadInformationTests.LoadData&lt;/TestId&gt;
+    &lt;/TestAncestor&gt;
+    &lt;ProjectFile&gt;16C58395-6F30-49F0-B780-60AEAD61C4E2/d:Domain/f:GenreTests.cs&lt;/ProjectFile&gt;
+    &lt;Project Location="/Users/edwardflores/Projects/Development/BeOne/BeOneSender.Data.Database.Tests" Presentation="&amp;lt;Data&amp;gt;\&amp;lt;BeOneSender.Data.Database.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
+&lt;/SessionState&gt;</s:String>
+	
+	</wpf:ResourceDictionary>

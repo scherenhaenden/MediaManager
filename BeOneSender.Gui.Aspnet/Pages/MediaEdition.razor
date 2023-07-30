@@ -1,0 +1,64 @@
+@page "/media-edition"
+@using BeOneSender.Gui.Aspnet.Models
+@using BeOneSender.Gui.Aspnet.Data
+@using System.Web
+
+@inject NavigationManager NavigationManager
+@inject IMusicEditService MusicEditService
+
+<h3>MediaEdition</h3>
+
+<!-- Song Edit Form -->
+<div class="container mt-4">
+    <form>
+        <div class="form-group">
+            <label for="songTitle">Song</label>
+            <input type="text" class="form-control" id="songTitle" @bind="SongViewModel.Title">
+        </div>
+        <div class="form-group">
+            <label for="artistName">Artist</label>
+            <input type="text" class="form-control" id="artistName" @bind="SongViewModel.Artist">
+        </div>
+        <div class="form-group">
+            <label for="genre">Genre</label>
+            <input type="text" class="form-control" id="genre" @bind="SongViewModel.Genre">
+        </div>
+        <div class="form-group">
+            <label for="songPath">Path</label>
+            <input type="text" class="form-control" id="songPath" @bind="SongViewModel.Path">
+        </div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary mr-2">Save</button>
+            <button type="button" class="btn btn-secondary mr-2">Cancel</button>
+            <button type="button" class="btn btn-danger">Delete</button>
+        </div>
+    </form>
+</div>
+
+@code {
+
+    // ... (existing code)
+
+    public SongViewModel SongViewModel { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var queryParams = HttpUtility.ParseQueryString(uri.Query);
+
+        if (Guid.TryParse(queryParams["musicFileId"], out var fileId))
+        {
+            await LoadSong(fileId);
+        }
+    }
+
+    public async Task LoadSong(Guid musicFileId)
+    {
+    // Load the song from the database
+    // and populate the form fields
+
+        var result = await MusicEditService.LoadSongInformationByIdAsync(musicFileId);
+        SongViewModel = result;
+    }
+
+}
