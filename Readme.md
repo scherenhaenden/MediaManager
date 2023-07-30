@@ -20,7 +20,7 @@ This project is a music storage application developed using .NET 7.0 and Entity 
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/yourusername/your-repo.git`
+1. Clone the repository: `git clone https://github.com/scherenhaenden/MediaManager.git`
 2. Navigate to the project directory: `cd your-repo`
 3. Build the solution: `dotnet build`
 4. Run the application: `dotnet run`
