@@ -12,11 +12,12 @@ public interface ISongDataService
 
     Task<SongDataModel> AddSongAsync(SongDataModel songDataModel, CancellationToken cancellationToken = default);
 
-    Task<SongDataModel> DeleteSong(SongDataModel songDataModel, CancellationToken cancellationToken = default);
+    Task DeleteSong(Guid songId, CancellationToken cancellationToken = default);
 
     // get all songs with take and skip
     Task<PaginationSongDataModel> GetAllSongsByPaginationAsync(int take, int skip,
         CancellationToken cancellationToken = default);
 
-    Task<PaginationSongDataModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip, string title, string artist, Guid? genreId, CancellationToken cancellationToken);
+    Task<PaginationSongDataModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip, string title,
+        string artist, Guid? genreId, CancellationToken cancellationToken);
 }

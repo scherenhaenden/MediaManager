@@ -5,7 +5,7 @@ namespace BeOneSender.Gui.Aspnet.Data;
 public interface IMusicSearchService
 {
     public Task<PaginationSongsViewModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip,
-         string? title, string? artist, Guid? genreId,
+        string? title, string? artist, Guid? genreId,
         CancellationToken cancellationToken = default);
 
     public Task<PaginationSongsViewModel> SearchSongsByTitleOrInterpretOrGenre(int take, int skip, string searchQuery,
@@ -21,4 +21,9 @@ public interface IMusicSearchService
         CancellationToken cancellationToken = default);
 
     public Task<List<GenreViewModel>> GetAllGenresAsync(CancellationToken cancellationToken = default);
+
+    public Task<List<ArtistViewModel>> GetAllArtistsAsync(string pattern = "",
+        CancellationToken cancellationToken = default);
+
+    public Task<ArtistViewModel> GetArtistByGuid(Guid guid, CancellationToken cancellationToken = default);
 }

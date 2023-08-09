@@ -61,4 +61,21 @@ public class GenreTests
         Assert.IsTrue(results.Any(vr => vr.MemberNames.Contains("Name")),
             "The 'Name' property should have validation errors.");
     }
+    
+    [Test]
+    public void Adding_Song_Should_Fill_SongCollection_In_Genre()
+    {
+        // Arrange
+        var genre = new GenreDatabaseModel { Name = "Pop", Description = "Popular Music" };
+        var song = new SongDatabaseModel { Title = "Song Title", Genre = genre };
+
+        // Act
+        genre.SongDatabaseModel.Add(song);
+
+        // Assert
+        Assert.AreEqual(1, genre.SongDatabaseModel.Count,
+            "The 'SongDatabaseModel' collection in the genre should have one song.");
+        Assert.AreSame(song, genre.SongDatabaseModel.First(),
+            "The added song should be the same as the one in the 'SongDatabaseModel' collection.");
+    }
 }

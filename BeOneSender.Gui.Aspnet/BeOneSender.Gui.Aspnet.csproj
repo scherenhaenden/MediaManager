@@ -24,4 +24,11 @@
         <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.5"/>
     </ItemGroup>
 
+
+    <ItemGroup>
+        <Compile Update="Pages\Index.cshtml.cs">
+            <DependentUpon>Index.razor</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
 </Project>

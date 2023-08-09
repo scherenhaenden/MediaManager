@@ -9,18 +9,11 @@ namespace BeOneSender.Data.Tests.Services.Genre;
 [TestFixture]
 public class GenreDataServiceTests
 {
-    /*[SetUp]
-    public void Setup()
-    {
-        _options = new DbContextOptionsBuilder<BeOneSenderDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-    }*/
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection = new SqliteConnection("DataSource=:memory.:");
         _connection.Open();
         _options = new DbContextOptionsBuilder<BeOneSenderDataContext>()
             .UseSqlite(_connection)

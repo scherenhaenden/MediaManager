@@ -11,12 +11,7 @@ public class BeOneSenderDataContext : DbContext
         : base(options)
     {
         base.Database.EnsureCreated();
-    }
-
-    public BeOneSenderDataContext(string connectionString)
-
-    {
-        _connectionString = connectionString;
+        base.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
     public DbSet<ArtistDatabaseModel> Artists { get; set; }

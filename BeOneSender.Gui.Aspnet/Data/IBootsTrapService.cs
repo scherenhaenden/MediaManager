@@ -1,6 +1,6 @@
 namespace BeOneSender.Gui.Aspnet.Data;
 
-public interface IBootrapService
+public interface IBootsTrapService
 {
     Task<bool> BootstrapAsync();
 }

@@ -7,7 +7,7 @@ public interface ISongsManagerService
     // get all songs with take and skip
     Task<PaginationSongBusinessLogicModel> GetAllSongsByPaginationAsync(int take, int skip,
         CancellationToken cancellationToken = default);
-    
+
     // Get a list of available genres.
     Task<List<GenreBusinessLogicModel>> GetGenresAsync(CancellationToken cancellationToken = default);
 
@@ -33,12 +33,20 @@ public interface ISongsManagerService
     List<SongBusinessLogicModel> GetSongsByCriteria(string title = null, string artist = null, string genre = null);
 
     // Update the details of an existing song in the music storage database.
-    void UpdateSong(Guid songId, string title, string artist, string genre, string filePath);
+    Task<SongBusinessLogicModel> UpdateSong(SongBusinessLogicModel songBusinessLogicModel,
+        CancellationToken cancellationToken = default);
 
     // Delete a song from the music storage database.
-    void DeleteSong(Guid songId);
+    Task DeleteSong(Guid songId, CancellationToken cancellationToken = default);
 
-    
+
     Task<SongBusinessLogicModel> GetSongByIdAsync(Guid songId, CancellationToken cancellationToken = default);
-    Task<PaginationSongBusinessLogicModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip, string title, string artist, Guid? genreId, CancellationToken cancellationToken);
+
+    Task<PaginationSongBusinessLogicModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip,
+        string title, string artist, Guid? genreId, CancellationToken cancellationToken);
+
+    Task<List<ArtistBusinessLogicModel>> GetArtistsByPatternAsync(string pattern = "",
+        CancellationToken cancellationToken = default);
+
+    Task<ArtistBusinessLogicModel> GetArtistByGuid(Guid guid, CancellationToken cancellationToken);
 }

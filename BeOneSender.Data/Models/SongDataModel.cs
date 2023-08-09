@@ -10,7 +10,7 @@ public class SongDataModel
 
     [Required] [StringLength(500)] public string Path { get; set; } = null!;
 
-    [Required] public ArtistDataModel ArtistDataModel { get; set; } = null!;
+    [Required] public ArtistDataModel Artist { get; set; } = null!;
 
-    [Required] public GenreDataModel GenreDataModel { get; set; } = null!;
+    [Required] public GenreDataModel Genre { get; set; } = null!;
 }

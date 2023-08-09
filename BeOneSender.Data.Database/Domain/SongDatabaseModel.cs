@@ -23,7 +23,7 @@ public class SongDatabaseModel
     [RequiredGuid(ErrorMessage = "The 'GenreId' property should be required.")]
     public Guid GenreId { get; set; }
 
-    [ForeignKey("ArtistId")] public virtual ArtistDatabaseModel ArtistDatabaseModel { get; set; } = null!;
+    [ForeignKey("ArtistId")] public virtual ArtistDatabaseModel Artist { get; set; } = null!;
 
-    [ForeignKey("GenreId")] public virtual GenreDatabaseModel GenreDatabaseModel { get; set; } = null!;
+    [ForeignKey("GenreId")] public virtual GenreDatabaseModel Genre { get; set; } = null!;
 }

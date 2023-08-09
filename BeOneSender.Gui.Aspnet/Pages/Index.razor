@@ -1,22 +1,29 @@
 ﻿@page "/"
 @using BeOneSender.Gui.Aspnet.Models
 @using BeOneSender.Gui.Aspnet.Data
-
-@inject IBootrapService BootrapService
+@inject IBootsTrapService BootStrapService
 @inject IMusicSearchService MusicSearchService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Index</PageTitle>
 
+<style>
+    tbody {
+        cursor: pointer;
+    }
+    .filter-input {
+       width: 181px;
+       height: 30px;
+    }
+</style>
+
 <div class="container">
-    <div class="row-cols-1">
-        <h1>Sender Be1: Liste von Lieder</h1>
-        <div class=" px-1">
-            <a class="nav-link btn btn-primary" href="media-edition">
-                <span class="input" aria-hidden="true"></span> Media Edition
+    <div class="row mb-4">
+        <h1 class="row">Sender Be1: Liste von Lieder</h1>
+        <div class=" col-3">
+            <a class="btn btn-primary" href="/media-edition">
+                <span class="input" aria-hidden="true"></span> Add new media
             </a>
-        </div>
-        <div class="px-1">
             <button class="btn btn-primary" @onclick="LoadDataIndoDatabase">
                 <span class="input" aria-hidden="true"></span> Media Edition
             </button>
@@ -27,7 +34,7 @@
         <div class="filter-container">
             <input type="text" @bind="FilterTitle" placeholder="Filter by Title"/>
             <input type="text" @bind="FilterArtist" placeholder="Filter by Artist"/>
-            <select @bind="SelectedGenre">
+            <select class="filter-input input" @bind="SelectedGenre">
                 <option value="">All Genres</option>
                 @foreach (var genre in Genres)
                 {
@@ -47,25 +54,15 @@
         </tr>
         </thead>
         <tbody>
-        @code {
-            int _index;
 
-            string GetRowClass(bool isEven)
-            {
-                return isEven ? "table-primary" : "table-secondary";
-            }
-
-            private int TotalPages { get; set; }
-            private int MaxPages { get; set; } = 10;
-
-        }
+       
         @foreach (var musicFile in _songsList.Songs)
         {
             var isEven = _index % 2 == 0;
             <tr class="@GetRowClass(isEven)" @onclick="() => EditMedia(musicFile.Id)">
                 <td>@musicFile.Title</td>
-                <td>@musicFile.Artist</td>
-                <td>@musicFile.Genre</td>
+                <td>@musicFile.Artist.Name</td>
+                <td>@musicFile.Genre.Name</td>
                 <td>@musicFile.Path</td>
             </tr>
             _index++;
@@ -73,32 +70,12 @@
 
         </tbody>
     </table>
-    
+
     <div class="d-flex justify-content-center">
-        
+
         <div class="pagination">
 
-            @code{
-
-                private int _currentPage = 1;
-
-                public int CurrentPage
-                {
-                    get => _currentPage;
-                    set
-                    {
-                        if (_currentPage == value)
-                        {
-                            return;
-                        }
-
-                        _currentPage = value;
-                        StateHasChanged();
-                        LoadData().Wait();
-                    }
-                }
-
-            }
+           
 
             @if (CurrentPage > 1)
             {
@@ -121,17 +98,40 @@
     </div>
 
 
-    
-
 </div>
 
 @code {
+    // Property declarations
+    private int _index;
+    private string _filterTitle = "";
+    private string _filterArtist = "";
+    private string _selectedGenre = "";
+    private int _currentPage = 1;
+    private int TotalPages { get; set; }
+    private int MaxPages { get; } = 10;
 
-    string _filterTitle = "";
-    string _filterArtist = "";
-    string _selectedGenre = "";
-    
-    public string FilterTitle
+    string GetRowClass(bool isEven)
+    {
+        return isEven ? "table-primary" : "table-secondary";
+    }
+
+    private int CurrentPage
+    {
+        get => _currentPage;
+        set
+        {
+            if (_currentPage == value)
+            {
+                return;
+            }
+
+            _currentPage = value;
+            StateHasChanged();
+            LoadData().Wait();
+        }
+    }
+
+    private string FilterTitle
     {
         get => _filterTitle;
         set
@@ -140,15 +140,13 @@
             {
                 return;
             }
-            
-            _filterTitle = value;
-            
-            LoadData().Wait();
 
+            _filterTitle = value;
+            LoadData().Wait();
         }
     }
-    
-    public string FilterArtist
+
+    private string FilterArtist
     {
         get => _filterArtist;
         set
@@ -157,15 +155,13 @@
             {
                 return;
             }
-            
-            _filterArtist = value;
-            
-            LoadData().Wait();
 
+            _filterArtist = value;
+            LoadData().Wait();
         }
     }
-    
-    public string SelectedGenre
+
+    private string SelectedGenre
     {
         get => _selectedGenre;
         set
@@ -174,50 +170,39 @@
             {
                 return;
             }
-            
-            _selectedGenre = value;
-            
-            LoadData().Wait();
 
+            _selectedGenre = value;
+            LoadData().Wait();
         }
     }
 
-    PaginationSongsViewModel _songsList  = new();
-    private List<GenreViewModel> _genres = new();
-    List<GenreViewModel> Genres
-    {
-        get => _genres;
-        set =>  _genres = value;
-    }
+    readonly PaginationSongsViewModel _songsList = new();
+
+    private List<GenreViewModel> Genres { get; set; } = new();
 
     private async Task<List<GenreViewModel>> GetGenres()
     {
-        return  await MusicSearchService.GetAllGenresAsync();
+        return await MusicSearchService.GetAllGenresAsync();
     }
 
     private async Task LoadData()
     {
-        //await GetSongsWithFiltering();
-        var result = (await GetSongsWithFiltering());
+        var result = await GetSongsWithFiltering();
         Genres = await GetGenres();
         _songsList.Songs = result.Songs;
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
     }
-    
+
     private async Task<PaginationSongsViewModel> GetSongsWithFiltering()
     {
         var pageSize = 10;
         var skip = pageSize * (CurrentPage - 1);
         var take = pageSize;
-        
-        // selectedGenre to guid if possible if not empty
-        
-        var genreGuid = Guid.TryParse(_selectedGenre, out var fileId);
-        
+        _ = Guid.TryParse(_selectedGenre, out var fileId);
 
         var result = await MusicSearchService
             .GetAllSongsByPaginationAsyncAndQueryParameters(
@@ -232,12 +217,12 @@
 
     private async Task LoadDataIndoDatabase()
     {
-        await BootrapService.BootstrapAsync();
+        await BootStrapService.BootstrapAsync();
     }
 
     private void EditMedia(Guid musicFileId)
     {
-        NavigationManager.NavigateTo($"media-edition?musicFileId={musicFileId}"); 
+        NavigationManager.NavigateTo($"media-edition?musicFileId={musicFileId}");
     }
 
 }

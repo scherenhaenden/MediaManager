@@ -13,6 +13,7 @@ public class SongsManagerService : ISongsManagerService
     private readonly IGenreDataService _genreDataService;
     private readonly ISongDataService _songDataService;
 
+
     public SongsManagerService(BeOneSenderDataContext beOneSenderDataContext)
     {
         _genreDataService = new GenreDataService(beOneSenderDataContext);
@@ -32,14 +33,14 @@ public class SongsManagerService : ISongsManagerService
     public async Task<List<GenreBusinessLogicModel>> GetGenresAsync(CancellationToken cancellationToken = default)
     {
         var model = await _genreDataService.GetGenresAsync(cancellationToken);
-        
+
         // map
         var list = model.Select(genreDataModel => new GenreBusinessLogicModel
         {
             Id = genreDataModel.Id,
             Name = genreDataModel.Name
         }).ToList();
-        
+
         return list;
     }
 
@@ -56,13 +57,13 @@ public class SongsManagerService : ISongsManagerService
             Title = s.Title,
             ArtistBusinessLogicModel = new ArtistBusinessLogicModel
             {
-                Id = s.ArtistDataModel.Id,
-                Name = s.ArtistDataModel.Name
+                Id = s.Artist.Id,
+                Name = s.Artist.Name
             },
             GenreBusinessLogicModel = new GenreBusinessLogicModel
             {
-                Id = s.GenreDataModel.Id,
-                Name = s.GenreDataModel.Name
+                Id = s.Genre.Id,
+                Name = s.Genre.Name
             },
             Path = s.Path
         });
@@ -90,13 +91,13 @@ public class SongsManagerService : ISongsManagerService
             Title = songDataModel.Title,
             ArtistBusinessLogicModel = new ArtistBusinessLogicModel
             {
-                Id = songDataModel.ArtistDataModel.Id,
-                Name = songDataModel.ArtistDataModel.Name
+                Id = songDataModel.Artist.Id,
+                Name = songDataModel.Artist.Name
             },
             GenreBusinessLogicModel = new GenreBusinessLogicModel
             {
-                Id = songDataModel.GenreDataModel.Id,
-                Name = songDataModel.GenreDataModel.Name
+                Id = songDataModel.Genre.Id,
+                Name = songDataModel.Genre.Name
             },
             Path = songDataModel.Path
         });
@@ -136,8 +137,8 @@ public class SongsManagerService : ISongsManagerService
             _songDataService.AddSongAsync(new SongDataModel
             {
                 Title = element.Title,
-                ArtistDataModel = artistDataModel,
-                GenreDataModel = genreDataModel,
+                Artist = artistDataModel,
+                Genre = genreDataModel,
                 Path = element.FilePath
             }, cancellationToken);
         }
@@ -182,8 +183,8 @@ public class SongsManagerService : ISongsManagerService
         var songDataModel = new SongDataModel
         {
             Title = title,
-            ArtistDataModel = artistDataModel,
-            GenreDataModel = genreDataModel,
+            Artist = artistDataModel,
+            Genre = genreDataModel,
             Path = filePath
         };
 
@@ -218,19 +219,21 @@ public class SongsManagerService : ISongsManagerService
         throw new NotImplementedException();
     }
 
-    public void UpdateSong(Guid songId, string title, string artist, string genre, string filePath)
+    public async Task<SongBusinessLogicModel> UpdateSong(SongBusinessLogicModel songBusinessLogicModel,
+        CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        // map to data model
+        var model = MapToDataModel(songBusinessLogicModel);
+
+
+        var result = await _songDataService.UpdateSongByModel(model, cancellationToken);
+
+        return MapFromDataModel(result);
     }
 
-    public void DeleteSong(Guid songId)
+    public async Task DeleteSong(Guid songId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
-    }
-
-    public List<string> GetAvailableGenres()
-    {
-        throw new NotImplementedException();
+        await _songDataService.DeleteSong(songId, cancellationToken);
     }
 
     public async Task<SongBusinessLogicModel> GetSongByIdAsync(Guid songId,
@@ -248,7 +251,9 @@ public class SongsManagerService : ISongsManagerService
         int skip, string title, string artist, Guid? genreId,
         CancellationToken cancellationToken)
     {
-        var listOfSongs = await _songDataService.GetAllSongsByPaginationAsyncAndQueryParameters(take, skip,title, artist, genreId, cancellationToken);
+        var listOfSongs =
+            await _songDataService.GetAllSongsByPaginationAsyncAndQueryParameters(take, skip, title, artist, genreId,
+                cancellationToken);
 
         var listOfSongsBusinessLogicModel = listOfSongs.Songs.Select(MapFromDataModel);
 
@@ -259,6 +264,65 @@ public class SongsManagerService : ISongsManagerService
         };
     }
 
+    public async Task<List<ArtistBusinessLogicModel>> GetArtistsByPatternAsync(string patter = "",
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _artistDataService.GetArtistsByPatternAsync(patter, cancellationToken);
+
+        // map list
+        var listOfArtistBusinessLogicModel = result.Select(artistDataModel => new ArtistBusinessLogicModel
+        {
+            Id = artistDataModel.Id,
+            Name = artistDataModel.Name
+        }).ToList();
+
+        return listOfArtistBusinessLogicModel;
+    }
+
+    public async Task<ArtistBusinessLogicModel> GetArtistByGuid(Guid guid, CancellationToken cancellationToken)
+    {
+        var result = await _artistDataService.GetArtistByGuidAsync(guid, cancellationToken);
+
+        return new ArtistBusinessLogicModel
+        {
+            Id = result.Id,
+            Name = result.Name
+        };
+    }
+
+    public void UpdateSong(Guid songId, string title, string artist, string genre, string filePath)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public List<string> GetAvailableGenres()
+    {
+        throw new NotImplementedException();
+    }
+
+    private SongDataModel MapToDataModel(SongBusinessLogicModel songBusinessLogicModel)
+    {
+        var songDataModel = new SongDataModel
+        {
+            Id = songBusinessLogicModel.Id,
+            Title = songBusinessLogicModel.Title,
+            Path = songBusinessLogicModel.Path,
+            Artist = new ArtistDataModel
+            {
+                Id = songBusinessLogicModel.ArtistBusinessLogicModel.Id,
+                Name = songBusinessLogicModel.ArtistBusinessLogicModel.Name
+            },
+            Genre = new GenreDataModel
+            {
+                Id = songBusinessLogicModel.GenreBusinessLogicModel.Id,
+                Name = songBusinessLogicModel.GenreBusinessLogicModel.Name
+            }
+        };
+        return songDataModel;
+    }
+
+
     private SongBusinessLogicModel MapFromDataModel(SongDataModel songDataModel)
     {
         return new SongBusinessLogicModel
@@ -267,13 +331,13 @@ public class SongsManagerService : ISongsManagerService
             Title = songDataModel.Title,
             ArtistBusinessLogicModel = new ArtistBusinessLogicModel
             {
-                Id = songDataModel.ArtistDataModel.Id,
-                Name = songDataModel.ArtistDataModel.Name
+                Id = songDataModel.Artist.Id,
+                Name = songDataModel.Artist.Name
             },
             GenreBusinessLogicModel = new GenreBusinessLogicModel
             {
-                Id = songDataModel.GenreDataModel.Id,
-                Name = songDataModel.GenreDataModel.Name
+                Id = songDataModel.Genre.Id,
+                Name = songDataModel.Genre.Name
             },
             Path = songDataModel.Path
         };

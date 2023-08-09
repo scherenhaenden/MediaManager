@@ -21,7 +21,7 @@ builder.Services.AddScoped<IMusicSearchService, MusicSearchService>();
 builder.Services.AddScoped<IMusicEditService, MusicEditService>();
 
 builder.Services.AddScoped<ILoadInformation, LoadInformation>();
-builder.Services.AddScoped<IBootrapService, BootrapService>();
+builder.Services.AddScoped<IBootsTrapService, BootsTrapService>();
 
 var app = builder.Build();
 

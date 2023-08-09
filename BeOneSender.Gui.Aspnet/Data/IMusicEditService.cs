@@ -1,4 +1,3 @@
-using BeOneSender.BusinessLogic.Models;
 using BeOneSender.Gui.Aspnet.Models;
 
 namespace BeOneSender.Gui.Aspnet.Data;
@@ -12,11 +11,16 @@ public interface IMusicEditService
 
     public Task<SongViewModel> LoadSongInformationByIdAsync(Guid songId, CancellationToken cancellationToken = default);
 
+    public Task<ArtistViewModel> GetArtistByIdAsync(Guid songId, CancellationToken cancellationToken = default);
+
     public Task<SongViewModel> AddSongAsync(string title, string artist, string genre, string filePath,
         CancellationToken cancellationToken = default);
 
-    public Task<bool> DeleteSongByIdAsync(Guid songId, CancellationToken cancellationToken = default);
+    public Task<SongViewModel> AddSongAsync(SongViewModel songBusinessLogicModel,
+        CancellationToken cancellationToken = default);
 
-    public Task<SongViewModel> UpdateSongAsync(SongBusinessLogicModel songBusinessLogicModel,
+    public Task DeleteSongByIdAsync(Guid songId, CancellationToken cancellationToken = default);
+
+    public Task<SongViewModel> UpdateSongAsync(SongViewModel songBusinessLogicModel,
         CancellationToken cancellationToken = default);
 }

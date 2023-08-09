@@ -1,5 +1,6 @@
 using BeOneSender.Data.Database.Core.Configuration;
 using BeOneSender.Data.Database.Domain;
+using BeOneSender.Data.Mapping.Artist;
 using BeOneSender.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,11 +13,6 @@ public class GenreDataService : IGenreDataService
     public GenreDataService(BeOneSenderDataContext beOneSenderDataContext)
     {
         _beOneSenderDataContext = beOneSenderDataContext;
-    }
-
-    public GenreDataService(string connectionString)
-    {
-        _beOneSenderDataContext = new BeOneSenderDataContext(connectionString);
     }
 
     public async Task<List<GenreDataModel>> GetGenresAsync(CancellationToken cancellationToken = default)
@@ -76,13 +72,7 @@ public class GenreDataService : IGenreDataService
         if (databaseModel == null)
             return null;
 
-        var dataModel = new GenreDataModel();
-
-        dataModel.Id = databaseModel.Id;
-        dataModel.Name = databaseModel.Name;
-        dataModel.Description = databaseModel.Description;
-
-        return dataModel;
+        return MapDataModelInOutDatabaseModel.Map(databaseModel);
     }
 
     public async Task<GenreDataModel?> GetGenreByMatch(string genre, CancellationToken cancellationToken = default)
@@ -98,13 +88,7 @@ public class GenreDataService : IGenreDataService
         if (databaseModel == null)
             return null;
 
-        var dataModel = new GenreDataModel();
-
-        dataModel.Id = databaseModel.Id;
-        dataModel.Name = databaseModel.Name;
-        dataModel.Description = databaseModel.Description;
-
-        return dataModel;
+        return MapDataModelInOutDatabaseModel.Map(databaseModel);
     }
 
     public async Task<GenreDataModel> AddOrGetGenre(string genre, string? description,

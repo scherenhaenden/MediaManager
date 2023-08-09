@@ -20,11 +20,6 @@ public class GenreManagerService : IGenreManagerService
         _genreDataService = new GenreDataService(beOneSenderDataContext);
     }
 
-    public GenreManagerService(string connectionString)
-    {
-        _beOneSenderDataContext = new BeOneSenderDataContext(connectionString);
-    }
-
     public async Task<GenreBusinessLogicModel> AddGenre(string genre, string? description,
         CancellationToken cancellationToken = default)
     {

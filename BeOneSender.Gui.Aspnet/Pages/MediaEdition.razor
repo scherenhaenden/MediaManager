@@ -2,9 +2,32 @@
 @using BeOneSender.Gui.Aspnet.Models
 @using BeOneSender.Gui.Aspnet.Data
 @using System.Web
+@using BootstrapingHelperCli.Tools
 
 @inject NavigationManager NavigationManager
+
+@inject IMusicSearchService MusicSearchService
 @inject IMusicEditService MusicEditService
+
+<style>
+    .autocomplete-suggestions {
+        position: absolute;
+        z-index: 1;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .suggestion {
+        padding: 5px;
+        cursor: pointer;
+    }
+
+    .suggestion:hover {
+        background-color: #ddd;
+    }
+</style>
 
 <h3>MediaEdition</h3>
 
@@ -17,48 +40,198 @@
         </div>
         <div class="form-group">
             <label for="artistName">Artist</label>
-            <input type="text" class="form-control" id="artistName" @bind="SongViewModel.Artist">
+            <input type="text" class="form-control" id="artistName" @bind="SelectedArtist.Name" @oninput="FilterArtists">
+            <div class="autocomplete-suggestions">
+                @foreach (var suggestion in ArtistSuggestions)
+                {
+                    <div class="suggestion" @onclick="() => SelectArtist(suggestion)">
+                        @suggestion.Name
+                    </div>
+                }
+            </div>
         </div>
         <div class="form-group">
             <label for="genre">Genre</label>
-            <input type="text" class="form-control" id="genre" @bind="SongViewModel.Genre">
+            <select class="form-control" @bind="SelectedGenre">
+                <option value="">All Genres</option>
+                @foreach (var genre in Genres)
+                {
+                    <option value="@genre.GenreId.ToString()">@genre.Name</option>
+                }
+            </select>
         </div>
         <div class="form-group">
             <label for="songPath">Path</label>
             <input type="text" class="form-control" id="songPath" @bind="SongViewModel.Path">
         </div>
         <div class="btn-group">
-            <button type="submit" class="btn btn-primary mr-2">Save</button>
-            <button type="button" class="btn btn-secondary mr-2">Cancel</button>
-            <button type="button" class="btn btn-danger">Delete</button>
+            <button type="button" class="btn btn-primary mr-2" @onclick="() => SaveSong()">Save</button>
+            <button type="button" class="btn btn-secondary mr-2" @onclick="() => CancelChanges()">Cancel</button>
+            <button type="button" class="btn btn-danger" @onclick="() => DeleteSong()">Delete</button>
         </div>
     </form>
 </div>
 
 @code {
-
-    // ... (existing code)
-
-    public SongViewModel SongViewModel { get; set; } = new();
-
+    
+    private SongViewModel _songViewModel = new();
+    private List<ArtistViewModel> ArtistSuggestions { get; set; } = new();
+    private ArtistViewModel SelectedArtist { get; set; } = new();
+    private List<GenreViewModel> Genres { get; set; }
+    private string? _selectedGenre = "";
+    // Property to check if there are changes
+    private bool HasChanges;
+    private List<ArtistViewModel> _artists;
+    
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(NavigationManager.Uri);
         var queryParams = HttpUtility.ParseQueryString(uri.Query);
 
+        await LoadGenres();
+        await LoadAllArtists();
+
         if (Guid.TryParse(queryParams["musicFileId"], out var fileId))
         {
             await LoadSong(fileId);
+        }
+        else
+        {
+            _songViewModel = new SongViewModel();
+        }
+    }
+
+    private async Task FilterArtists(ChangeEventArgs e)
+    {
+        var input = e.Value.ToString();
+        ArtistSuggestions = _artists.Where(a => a.Name.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToList();
+        ArtistSuggestions = await LoadArtistsByPattern(input);
+    }
+
+    private async Task SelectArtist(ArtistViewModel? artist)
+    {
+        if (artist != null)
+        {
+            var result = await LoadArtistById(artist.ArtistId);
+            _songViewModel.Artist = result;
+            SelectedArtist = result;
+        }
+        else
+        {
+            _songViewModel.Artist = new ArtistViewModel();
+            SelectedArtist = new ArtistViewModel();
+        }
+
+        ArtistSuggestions.Clear(); // Clear suggestions only when an artist is selected
+    }
+
+    
+
+    public SongViewModel SongViewModel
+    {
+        get => _songViewModel;
+        set
+        {
+            if (!Equals(_songViewModel, value))
+            {
+                _songViewModel = value;
+                HasChanges = true;
+            }
+        }
+    }
+
+    public string? SelectedGenre
+    {
+        get => _selectedGenre;
+        set
+        {
+            if (value == _selectedGenre)
+            {
+                return;
+            }
+            _selectedGenre = value;
+            if (Guid.TryParse(value, out var genreId))
+            {
+                _songViewModel.Genre = Genres
+                    .FirstOrDefault(x => x.GenreId == genreId);
+            }
+            else
+            {
+                _songViewModel.Genre = new GenreViewModel();
+            }
         }
     }
 
     public async Task LoadSong(Guid musicFileId)
     {
+        // Load the song from the database
+        // and populate the form fields
+        var result = await MusicEditService.LoadSongInformationByIdAsync(musicFileId);
+        _songViewModel = result;
+        SelectedGenre = Genres
+            .FirstOrDefault(x => x.GenreId == result.Genre.GenreId)?.GenreId.ToString() ?? "";
+
+        ArtistSuggestions = _artists.Select(ObjectUtilities.CopyObject).ToList();
+        ;
+
+        SelectedArtist = _artists
+            .First(x => x.ArtistId == result.Artist.ArtistId);
+        await SelectArtist(SelectedArtist);
+        HasChanges = false;
+    }
+
+    public async Task LoadGenres()
+    {
     // Load the song from the database
     // and populate the form fields
+        var result = await MusicSearchService.GetAllGenresAsync();
+        Genres = result;
+    }
 
-        var result = await MusicEditService.LoadSongInformationByIdAsync(musicFileId);
-        SongViewModel = result;
+    public async Task LoadAllArtists()
+    {
+    // Load the song from the database
+    // and populate the form fields
+        var result = await MusicSearchService.GetAllArtistsAsync();
+        _artists = result;
+    }
+
+    public async Task<List<ArtistViewModel>> LoadArtistsByPattern(string pattern)
+    {
+    // Load the song from the database
+    // and populate the form fields
+        return await MusicSearchService.GetAllArtistsAsync(pattern);
+    }
+
+    public async Task<ArtistViewModel> LoadArtistById(Guid guid)
+    {
+    // Load the song from the database
+    // and populate the form fields
+        return await MusicSearchService.GetArtistByGuid(guid);
+    }
+
+    public async Task SaveSong(CancellationToken cancellationToken = default)
+    {
+        if (_songViewModel.Id == Guid.Empty)
+        {
+            _songViewModel = await MusicEditService.AddSongAsync(_songViewModel, cancellationToken);
+        }
+        else
+        {
+            _songViewModel = await MusicEditService.UpdateSongAsync(_songViewModel, cancellationToken);
+        }
+        HasChanges = false;
+    }
+
+    private async Task CancelChanges()
+    {
+        await OnInitializedAsync();
+    }
+
+    private async Task DeleteSong()
+    {
+        await MusicEditService.DeleteSongByIdAsync(_songViewModel.Id);
+        NavigationManager.NavigateTo("/");
     }
 
 }

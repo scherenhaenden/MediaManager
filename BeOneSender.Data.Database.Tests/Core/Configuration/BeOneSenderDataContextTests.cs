@@ -18,6 +18,26 @@ public class BeOneSenderDataContextTests
             .Options;
     }
 
+    [Test]
+    public void Test_CreationOfContext_Using_Context()
+    {
+        // Arrange
+        using (var context = new BeOneSenderDataContext(_options))
+        {
+            // Act
+            var artists = context.Artists.ToList();
+            var genres = context.Genres.ToList();
+            var songs = context.Songs.ToList();
+
+            // Assert
+            Assert.NotNull(artists, "The 'Artists' property should not be null.");
+            Assert.NotNull(genres, "The 'Genres' property should not be null.");
+            Assert.NotNull(songs, "The 'Songs' property should not be null.");
+        }
+    }
+
+
+
     private DbContextOptions<BeOneSenderDataContext> _options;
 
     [Test]

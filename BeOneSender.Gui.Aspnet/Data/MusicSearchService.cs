@@ -13,12 +13,14 @@ public class MusicSearchService : IMusicSearchService
         _configuration = configuration;
         _songsManagerService = songsManagerService;
     }
-    
+
     public async Task<PaginationSongsViewModel> GetAllSongsByPaginationAsyncAndQueryParameters(int take, int skip,
         string title, string artist, Guid? genreId,
         CancellationToken cancellationToken = default)
     {
-        var paginationSongBusinessLogic = await _songsManagerService.GetAllSongsByPaginationAsyncAndQueryParameters(take, skip, title, artist, genreId, cancellationToken);
+        var paginationSongBusinessLogic =
+            await _songsManagerService.GetAllSongsByPaginationAsyncAndQueryParameters(take, skip, title, artist,
+                genreId, cancellationToken);
 
         // map
         var paginationSongViewModel = new PaginationSongsViewModel
@@ -27,8 +29,17 @@ public class MusicSearchService : IMusicSearchService
             {
                 Id = songBusinessLogicModel.Id,
                 Title = songBusinessLogicModel.Title,
-                Artist = songBusinessLogicModel.ArtistBusinessLogicModel.Name,
-                Genre = songBusinessLogicModel.GenreBusinessLogicModel.Name,
+                Artist = new ArtistViewModel
+                {
+                    ArtistId = songBusinessLogicModel.ArtistBusinessLogicModel.Id,
+                    Name = songBusinessLogicModel.ArtistBusinessLogicModel.Name
+                },
+
+                Genre = new GenreViewModel
+                {
+                    GenreId = songBusinessLogicModel.GenreBusinessLogicModel.Id,
+                    Name = songBusinessLogicModel.GenreBusinessLogicModel.Name
+                },
                 Path = songBusinessLogicModel.Path
             }).ToList(),
             TotalSongs = paginationSongBusinessLogic.TotalSongs
@@ -64,13 +75,42 @@ public class MusicSearchService : IMusicSearchService
     public async Task<List<GenreViewModel>> GetAllGenresAsync(CancellationToken cancellationToken = default)
     {
         var model = await _songsManagerService.GetGenresAsync(cancellationToken);
-        
+
         // map
         var genreViewModel = model.Select(genreBusinessLogicModel => new GenreViewModel
         {
             GenreId = genreBusinessLogicModel.Id,
             Name = genreBusinessLogicModel.Name
         }).ToList();
+
+        return genreViewModel;
+    }
+
+    public async Task<List<ArtistViewModel>> GetAllArtistsAsync(string pattern = "",
+        CancellationToken cancellationToken = default)
+    {
+        var model = await _songsManagerService.GetArtistsByPatternAsync(pattern, cancellationToken);
+
+        // map
+        var genreViewModel = model.Select(genreBusinessLogicModel => new ArtistViewModel
+        {
+            ArtistId = genreBusinessLogicModel.Id,
+            Name = genreBusinessLogicModel.Name
+        }).ToList();
+
+        return genreViewModel;
+    }
+
+    public async Task<ArtistViewModel> GetArtistByGuid(Guid guid, CancellationToken cancellationToken = default)
+    {
+        var model = await _songsManagerService.GetArtistByGuid(guid, cancellationToken);
+
+        // map
+        var genreViewModel = new ArtistViewModel
+        {
+            ArtistId = model.Id,
+            Name = model.Name
+        };
 
         return genreViewModel;
     }

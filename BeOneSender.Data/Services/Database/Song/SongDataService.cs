@@ -1,5 +1,6 @@
 using BeOneSender.Data.Database.Core.Configuration;
 using BeOneSender.Data.Database.Domain;
+using BeOneSender.Data.Mapping.Artist;
 using BeOneSender.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,12 +18,12 @@ public class SongDataService : ISongDataService
     public async Task<PaginationSongDataModel> GetSongsByMatch(string titleName,
         CancellationToken cancellationToken = default)
     {
-        var songs = await _beOneSenderDataContext.Songs.CountAsync();
+        var songs = await _beOneSenderDataContext.Songs.CountAsync(cancellationToken);
 
 
         var listOfSongs = await _beOneSenderDataContext
-            .Songs.Include(s => s.ArtistDatabaseModel)
-            .Include(s => s.GenreDatabaseModel)
+            .Songs.Include(s => s.Artist)
+            .Include(s => s.Genre)
             .Where(x =>
                 x.Title.ToLower().Contains(titleName.ToLower())
                 //|| x.ArtistDatabaseModel.Name.ToLower().Contains(titleName.ToLower())
@@ -35,14 +36,7 @@ public class SongDataService : ISongDataService
             return null;
 
         // map 
-        var listOfSongsDataModel = new List<SongDataModel>();
-
-        foreach (var song in listOfSongs)
-        {
-            var songDataModel = MapFromSongDataBaseModel(song);
-
-            listOfSongsDataModel.Add(songDataModel);
-        }
+        var listOfSongsDataModel = MapDataModelInOutDatabaseModel.Map(listOfSongs);
 
         var paginationSongDataModel = new PaginationSongDataModel
         {
@@ -57,22 +51,47 @@ public class SongDataService : ISongDataService
     public async Task<SongDataModel?> GetSongById(Guid id, CancellationToken cancellationToken = default)
     {
         var model = await _beOneSenderDataContext.Songs
-            .Include(s => s.ArtistDatabaseModel)
-            .Include(s => s.GenreDatabaseModel)
+            .Include(s => s.Artist)
+            .Include(s => s.Genre)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (model == null)
             return null;
 
         // map
-        var songDataModel = MapFromSongDataBaseModel(model);
-        return songDataModel;
+        return MapDataModelInOutDatabaseModel.Map(model);
     }
 
-    public Task<SongDataModel> UpdateSongByModel(SongDataModel songDataModel,
+    public async Task<SongDataModel> UpdateSongByModel(SongDataModel songDataModel,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        // map from data model to database model
+        var dataBaseModel = MapToSongDatabaseModel(songDataModel);
+
+        // update database
+        try
+        {
+            //_beOneSenderDataContext.Entry(dataBaseModel).CurrentValues.SetValues(dataBaseModel);
+            _beOneSenderDataContext.Songs.Update(dataBaseModel);
+
+            /*var existingEntity = _beOneSenderDataContext.Songs.Find(dataBaseModel.Id);
+            if (existingEntity != null)
+            {
+
+
+            }*/
+
+            await _beOneSenderDataContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        // save changes
+        await _beOneSenderDataContext.SaveChangesAsync();
+
+        return MapDataModelInOutDatabaseModel.Map(dataBaseModel);
     }
 
     public async Task<SongDataModel> AddSongAsync(SongDataModel songDataModel,
@@ -84,8 +103,8 @@ public class SongDataService : ISongDataService
         dataBaseModel.Id = Guid.NewGuid();
         dataBaseModel.Title = songDataModel.Title;
         dataBaseModel.Path = songDataModel.Path;
-        dataBaseModel.GenreId = songDataModel.GenreDataModel.Id;
-        dataBaseModel.ArtistId = songDataModel.ArtistDataModel.Id;
+        dataBaseModel.GenreId = songDataModel.Genre.Id;
+        dataBaseModel.ArtistId = songDataModel.Artist.Id;
 
         // add to database
         var entity = (await _beOneSenderDataContext.Songs.AddAsync(dataBaseModel, cancellationToken)).Entity;
@@ -95,14 +114,18 @@ public class SongDataService : ISongDataService
 
         // map from database model to data model
 
-        var songDataModelToReturn = MapFromSongDataBaseModel(entity);
-
-        return songDataModelToReturn;
+        return MapDataModelInOutDatabaseModel.Map(entity);
     }
 
-    public Task<SongDataModel> DeleteSong(SongDataModel songDataModel, CancellationToken cancellationToken = default)
+    public async Task DeleteSong(Guid songId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var dataModel = await _beOneSenderDataContext.Songs.FirstOrDefaultAsync(x => x.Id == songId, cancellationToken);
+
+        if (dataModel == null)
+            return;
+
+        _beOneSenderDataContext.Songs.Remove(dataModel);
+        _beOneSenderDataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<PaginationSongDataModel> GetAllSongsByPaginationAsync(int take, int skip,
@@ -113,14 +136,11 @@ public class SongDataService : ISongDataService
 
         var listOfSongs = await _beOneSenderDataContext
             .Songs.Skip(skip).Take(take)
-            .Include(s => s.ArtistDatabaseModel)
-            .Include(s => s.GenreDatabaseModel)
+            .Include(s => s.Artist)
+            .Include(s => s.Genre)
             .ToListAsync(cancellationToken);
 
-        var listOfSongsDataModel = new List<SongDataModel>();
-
-        foreach (var songs in listOfSongs) listOfSongsDataModel.Add(MapFromSongDataBaseModel(songs));
-
+        var listOfSongsDataModel = MapDataModelInOutDatabaseModel.Map(listOfSongs);
 
         var paginationSongDataModel = new PaginationSongDataModel
         {
@@ -135,70 +155,43 @@ public class SongDataService : ISongDataService
         string title, string artist, Guid? genreId,
         CancellationToken cancellationToken)
     {
-
-        var listOfSongs = await _beOneSenderDataContext.Songs.Include(s => s.ArtistDatabaseModel)
-            .Include(s => s.GenreDatabaseModel)
+        var listOfSongs = await _beOneSenderDataContext.Songs.Include(s => s.Artist)
+            .Include(s => s.Genre)
             .ToListAsync();
 
         if (!string.IsNullOrWhiteSpace(title))
-        {
-            listOfSongs = listOfSongs.Where(x => 
+            listOfSongs = listOfSongs.Where(x =>
                 x.Title.ToLower().Contains(title.ToLower())
                 || title.ToLower().Contains(x.Title.ToLower())
-                ).ToList();
-        }
-        
+            ).ToList();
+
         if (!string.IsNullOrWhiteSpace(artist))
-        {
-            listOfSongs = listOfSongs.Where(x => 
-                x.ArtistDatabaseModel.Name.ToLower().Contains(artist.ToLower())
-                || artist.ToLower().Contains(x.ArtistDatabaseModel.Name.ToLower())
-                ).ToList();
-        }
-        
+            listOfSongs = listOfSongs.Where(x =>
+                x.Artist.Name.ToLower().Contains(artist.ToLower())
+                || artist.ToLower().Contains(x.Artist.Name.ToLower())
+            ).ToList();
+
         if (genreId != Guid.Empty && genreId != null)
-        {
             listOfSongs = listOfSongs.Where(x => x.GenreId == genreId).ToList();
-        }
-        
+
         var totalcounCountAsync = listOfSongs.Count();
-        
-        listOfSongs = listOfSongs.OrderBy(x=>x.Id).Skip(skip).Take(take).ToList();
-        
-        
 
-        var listOfSongsDataModel = new List<SongDataModel>();
+        listOfSongs = listOfSongs.OrderBy(x => x.Id).Skip(skip).Take(take).ToList();
 
-        foreach (var songs in listOfSongs) listOfSongsDataModel.Add(MapFromSongDataBaseModel(songs));
-
+        var values = MapDataModelInOutDatabaseModel.Map(listOfSongs);
 
         var paginationSongDataModel = new PaginationSongDataModel
         {
             TotalSongs = totalcounCountAsync,
-            Songs = listOfSongsDataModel
+            Songs = values
         };
 
         return paginationSongDataModel;
     }
 
-    private static SongDataModel MapFromSongDataBaseModel(SongDatabaseModel song)
+
+    private static SongDatabaseModel MapToSongDatabaseModel(SongDataModel songDataModel)
     {
-        var songDataModel = new SongDataModel
-        {
-            Id = song.Id,
-            Title = song.Title,
-            Path = song.Path,
-            ArtistDataModel = new ArtistDataModel
-            {
-                Id = song.ArtistDatabaseModel.Id,
-                Name = song.ArtistDatabaseModel.Name
-            },
-            GenreDataModel = new GenreDataModel
-            {
-                Id = song.GenreDatabaseModel.Id,
-                Name = song.GenreDatabaseModel.Name
-            }
-        };
-        return songDataModel;
+        return MapDataModelInOutDatabaseModel.Map(songDataModel);
     }
 }
