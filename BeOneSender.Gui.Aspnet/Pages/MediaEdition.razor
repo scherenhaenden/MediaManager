@@ -36,11 +36,19 @@
     <form>
         <div class="form-group">
             <label for="songTitle">Song</label>
-            <input type="text" class="form-control" id="songTitle" @bind="SongViewModel.Title">
+        <input type="text" class="form-control @(String.IsNullOrEmpty(_songViewModel?.Title) == true ? "is-invalid" : "")" id="songTitle" @bind="SongViewModel.Title">
+        <div class="invalid-feedback">
+            Please enter a valid song title.
+        </div>
         </div>
         <div class="form-group">
             <label for="artistName">Artist</label>
-            <input type="text" class="form-control" id="artistName" @bind="SelectedArtist.Name" @oninput="FilterArtists">
+            <input type="text" class="form-control @((String.IsNullOrEmpty(SelectedArtist.Name)&&  ArtistSuggestions.Count == 0)== true ? "is-invalid" : "")" id="artistName" @bind="SelectedArtist.Name"  @oninput="FilterArtists">
+            <div class="invalid-feedback">
+                Please enter a valid song title.
+            </div>
+            
+            
             <div class="autocomplete-suggestions">
                 @foreach (var suggestion in ArtistSuggestions)
                 {
@@ -124,6 +132,8 @@
 
         ArtistSuggestions.Clear(); // Clear suggestions only when an artist is selected
     }
+    
+    
 
     
 
@@ -210,11 +220,54 @@
         return await MusicSearchService.GetArtistByGuid(guid);
     }
 
+    public bool RunAndGetValidation()
+    {
+        if(SelectedArtist == null)
+        {
+            return false;
+        }
+        
+        if(SelectedArtist.ArtistId == Guid.Empty)
+        {
+            return false;
+        }
+        
+        if(SelectedGenre == null)
+        {
+            return false;
+        }
+        
+        if(SelectedGenre == "")
+        {
+            return false;
+        }
+        
+        if(_songViewModel.Title == null)
+        {
+            return false;
+        }
+        
+    // now path
+        if(_songViewModel.Path == null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
+
     public async Task SaveSong(CancellationToken cancellationToken = default)
     {
+        if (!RunAndGetValidation())
+        {
+            return;
+        }
+
         if (_songViewModel.Id == Guid.Empty)
         {
             _songViewModel = await MusicEditService.AddSongAsync(_songViewModel, cancellationToken);
+    
         }
         else
         {
