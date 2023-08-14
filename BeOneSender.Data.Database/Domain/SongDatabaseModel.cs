@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using SharedTools.Validation.Attributes;
 
 namespace BeOneSender.Data.Database.Domain;
 
 [Table("Songs")]
+[Index(nameof(Path), IsUnique=true)]
 public class SongDatabaseModel
 {
     [Key]
@@ -13,6 +15,7 @@ public class SongDatabaseModel
 
     [Required] [StringLength(500)] public string Title { get; set; } = null!;
 
+    
     [Required] [StringLength(500)] public string Path { get; set; } = null!;
 
     [ForeignKey("Artists")]
