@@ -210,11 +210,54 @@
         return await MusicSearchService.GetArtistByGuid(guid);
     }
 
+    public bool RunAndGetValidation()
+    {
+        if(SelectedArtist == null)
+        {
+            return false;
+        }
+        
+        if(SelectedArtist.ArtistId == Guid.Empty)
+        {
+            return false;
+        }
+        
+        if(SelectedGenre == null)
+        {
+            return false;
+        }
+        
+        if(SelectedGenre == "")
+        {
+            return false;
+        }
+        
+        if(_songViewModel.Title == null)
+        {
+            return false;
+        }
+        
+        // now path
+        if(_songViewModel.Path == null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
+
     public async Task SaveSong(CancellationToken cancellationToken = default)
     {
+        if (!RunAndGetValidation())
+        {
+            return;
+        }
+
         if (_songViewModel.Id == Guid.Empty)
         {
             _songViewModel = await MusicEditService.AddSongAsync(_songViewModel, cancellationToken);
+    
         }
         else
         {
