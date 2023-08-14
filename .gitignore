@@ -3,3 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+BeOneSender.Gui.Aspnet/BookStoreContext.db-shm
+BeOneSender.Gui.Aspnet/BookStoreContext.db-wal
+BeOneSender.Gui.Aspnet/BookStoreContext.db
