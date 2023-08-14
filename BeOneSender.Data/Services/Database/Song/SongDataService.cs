@@ -108,13 +108,17 @@ public class SongDataService : ISongDataService
 
         // add to database
         var entity = (await _beOneSenderDataContext.Songs.AddAsync(dataBaseModel, cancellationToken)).Entity;
-
+        
         // save changes
         await _beOneSenderDataContext.SaveChangesAsync();
+        
+        return await GetSongById(entity.Id, cancellationToken);
+
+        
 
         // map from database model to data model
 
-        return MapDataModelInOutDatabaseModel.Map(entity);
+        //return MapDataModelInOutDatabaseModel.Map(entity);
     }
 
     public async Task DeleteSong(Guid songId, CancellationToken cancellationToken = default)
