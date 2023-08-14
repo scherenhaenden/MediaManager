@@ -1,4 +1,5 @@
 ﻿@page "/"
+@model BeOneSender.Gui.Aspnet.Pages.Index
 @using BeOneSender.Gui.Aspnet.Models
 @using BeOneSender.Gui.Aspnet.Data
 @inject IBootsTrapService BootStrapService
@@ -20,12 +21,12 @@
 <div class="container">
     <div class="row mb-4">
         <h1 class="row">Sender Be1: Liste von Lieder</h1>
-        <div class=" col-3">
+        <div class=" col-4">
             <a class="btn btn-primary" href="/media-edition">
                 <span class="input" aria-hidden="true"></span> Add new media
             </a>
             <button class="btn btn-primary" @onclick="LoadDataIndoDatabase">
-                <span class="input" aria-hidden="true"></span> Media Edition
+                <span class="input" aria-hidden="true"></span> Load data into database
             </button>
         </div>
     </div>
